@@ -1,0 +1,64 @@
+version: 2
+
+models:
+  - name: int_reports_unioned
+    description: Union of the four staging sources with a common shape.
+    columns:
+      - name: record_id
+        tests:
+          - unique
+          - not_null
+      - name: source
+        tests:
+          - accepted_values:
+              values:
+                - cpsc_recall
+                - saferproducts_incident
+                - healthcanada_recall
+                - eu_safetygate
+      - name: kind
+        tests:
+          - accepted_values:
+              values: [recall, incident, alert]
+      - name: event_date
+        tests:
+          - not_null
+
+  - name: int_reports_categorized
+    description: One row per (record, category) pair.
+    columns:
+      - name: record_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('int_reports_unioned')
+              field: record_id
+      - name: category_key
+        tests:
+          - not_null
+
+  - name: int_reports_with_extractions
+    description: >
+      (Record x category) joined with LLM extractions. Rows outside the Ninja
+      v1 scope keep the raw category but have `is_v1_scope = false`.
+    columns:
+      - name: record_id
+        tests:
+          - not_null
+      - name: category_key
+        tests:
+          - not_null
+      - name: is_v1_scope
+        tests:
+          - not_null
+
+  - name: int_brand_canonicalized
+    description: Per-record canonical brand + manufacturer.
+    columns:
+      - name: record_id
+        tests:
+          - unique
+          - not_null
+      - name: is_canonical
+        tests:
+          - not_null

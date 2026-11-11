@@ -1,0 +1,127 @@
+version: 2
+
+models:
+  - name: stg_cpsc_recalls
+    description: >
+      CPSC recalls, one per `cpsc-<RecallID>`. All rows are verified regulator
+      actions.
+    columns:
+      - name: record_id
+        description: Globally unique record id — `cpsc-<RecallID>`.
+        tests:
+          - unique
+          - not_null
+      - name: source
+        tests:
+          - accepted_values:
+              values: ["cpsc_recall"]
+      - name: kind
+        tests:
+          - accepted_values:
+              values: ["recall"]
+      - name: is_verified
+        description: Always true for CPSC recalls.
+        tests:
+          - not_null
+      - name: url
+        description: Recall landing page.
+        tests:
+          - not_null
+      - name: recall_date
+        description: Regulator-published recall date.
+        tests:
+          - not_null
+
+  - name: stg_saferproducts_incidents
+    description: >
+      UNVERIFIED consumer incident reports. `is_verified = false` on every
+      row.
+    columns:
+      - name: record_id
+        tests:
+          - unique
+          - not_null
+      - name: source
+        tests:
+          - accepted_values:
+              values: ["saferproducts_incident"]
+      - name: is_verified
+        tests:
+          - not_null
+      - name: injury_level
+        description: >
+          Bucketed from the free-text severity string. One of `serious`,
+          `medical`, `minor`, `none`, `unknown`.
+        tests:
+          - accepted_values:
+              values: ["serious", "medical", "minor", "none", "unknown"]
+      - name: incident_date
+        tests:
+          - not_null
+      - name: url
+        description: Public report landing page.
+        tests:
+          - not_null
+
+  - name: stg_healthcanada_recalls
+    description: Health Canada appliance recalls, one per NID.
+    columns:
+      - name: record_id
+        tests:
+          - unique
+          - not_null
+      - name: source
+        tests:
+          - accepted_values:
+              values: ["healthcanada_recall"]
+      - name: is_verified
+        tests:
+          - not_null
+      - name: url
+        tests:
+          - not_null
+
+  - name: stg_eu_safetygate_alerts
+    description: EU Safety Gate appliance alerts, one per cleaned case number.
+    columns:
+      - name: record_id
+        tests:
+          - unique
+          - not_null
+      - name: source
+        tests:
+          - accepted_values:
+              values: ["eu_safetygate"]
+      - name: is_verified
+        tests:
+          - not_null
+      - name: url
+        tests:
+          - not_null
+      - name: report_date
+        tests:
+          - not_null
+
+  - name: stg_extractions
+    description: LLM-extracted failure mode / cause / effect / hazard per record.
+    columns:
+      - name: record_id
+        tests:
+          - unique
+          - not_null
+      - name: quote_status
+        description: Was the verbatim quote found in the record text?
+        tests:
+          - accepted_values:
+              values: ["exact", "near", "unsupported", null]
+      - name: injury_level
+        tests:
+          - accepted_values:
+              values: ["none", "minor", "medical", "serious", null]
+
+  - name: stg_hindsight_version
+    description: Snapshot of Hindsight's pipeline manifest.
+    columns:
+      - name: pipeline_record_count
+        tests:
+          - not_null

@@ -1,0 +1,32 @@
+# Project-local profile. Set DBT_PROFILES_DIR=. (or run dbt from this folder
+# with `--profiles-dir .`). The default target is DuckDB, so a stranger can
+# clone the repo and `dbt build` without touching cloud credentials.
+#
+# For Snowflake, create a .env from .env.example and run
+# `source .env && dbt build --target snowflake`.
+hindsight_warehouse:
+  target: duckdb
+  outputs:
+    duckdb:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', 'hindsight_warehouse.duckdb') }}"
+      threads: 4
+      # Install the json extension once per database; harmless if already present.
+      extensions:
+        - json
+
+    snowflake:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      # Programmatic Access Tokens (PATs) authenticate as a password with
+      # authenticator=snowflake. If you later move to key-pair auth, swap
+      # password+authenticator for `private_key_path` and `private_key_passphrase`.
+      password: "{{ env_var('SNOWFLAKE_TOKEN') }}"
+      authenticator: snowflake
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'ACCOUNTADMIN') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'COMPUTE_WH') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'HINDSIGHT') }}"
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'ANALYTICS') }}"
+      threads: 4
+      client_session_keep_alive: false

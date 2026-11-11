@@ -1,0 +1,92 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Landing tables written by `scripts/load_raw.py`. One row per raw JSON
+      record, with the full record in `payload` and a `_loaded_at` timestamp.
+      Staging models pull typed fields out of `payload`; this mirrors the
+      Fivetran/Airbyte pattern of minimal typing at ingest.
+    # Uses target.database by default — hindsight_warehouse on DuckDB,
+    # SNOWFLAKE_DATABASE (default HINDSIGHT) on Snowflake. The loader writes
+    # to `raw` on both.
+    schema: raw
+    loaded_at_field: _loaded_at
+    freshness:
+      warn_after: {count: 30, period: day}
+      error_after: {count: 90, period: day}
+
+    tables:
+      - name: cpsc_recalls
+        description: >
+          CPSC recalls from the SaferProducts REST API, filtered to the twelve
+          small-appliance categories Hindsight tracks. Each record carries the
+          regulator's structured hazard list, affected products, remedies,
+          injury counts, and SharkNinja flag.
+        columns:
+          - name: source_record_id
+            description: CPSC RecallID as a string.
+            tests:
+              - unique
+              - not_null
+          - name: payload
+            description: Full recall record as JSON.
+          - name: _loaded_at
+            description: Timestamp the loader wrote the row.
+
+      - name: saferproducts_incidents
+        description: >
+          UNVERIFIED consumer incident reports from SaferProducts.gov, filtered
+          to the twelve appliance categories. Reports are CPSC-collected
+          consumer claims — treat as hypothesis, not fact. Manufacturer
+          responses were dropped from the slim file to keep the repo small.
+        columns:
+          - name: source_record_id
+            description: SaferProducts report number.
+            tests:
+              - unique
+              - not_null
+
+      - name: healthcanada_recalls
+        description: >
+          Health Canada appliance recalls from the recalls-rappels open data
+          feed. Many are joint US/Canada recalls that duplicate CPSC entries;
+          the dedup key in the intermediate layer resolves those.
+        columns:
+          - name: source_record_id
+            description: Health Canada NID.
+            tests:
+              - unique
+              - not_null
+
+      - name: eu_safetygate_alerts
+        description: >
+          EU Safety Gate (formerly RAPEX) weekly alerts filtered to appliance
+          categories. Pulled 2020-mid through 2026-10; older weeks are not
+          present in the source extract.
+        columns:
+          - name: source_record_id
+            description: Safety Gate case number with non-word chars replaced.
+            tests:
+              - unique
+              - not_null
+
+      - name: extractions
+        description: >
+          Per-record LLM extraction results from Hindsight's pipeline:
+          component, failure_mode, cause, effect, hazard_type, injury, quote
+          (and whether the quote is supported by the record text). Staging
+          joins these onto the unified reports.
+        columns:
+          - name: source_record_id
+            description: Hindsight record id (source_key-srcId).
+            tests:
+              - unique
+              - not_null
+
+      - name: hindsight_version
+        description: >
+          Single-row snapshot of Hindsight's pipeline manifest for the day the
+          data was pulled — record count, per-source freshness, overall quote
+          support rate. The `data_quality` mart compares its own numbers back
+          to this one.

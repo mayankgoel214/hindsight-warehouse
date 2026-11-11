@@ -1,0 +1,46 @@
+name: hindsight_warehouse
+version: "1.0.0"
+config-version: 2
+
+profile: hindsight_warehouse
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+  - "logs"
+
+# Keep raw load timestamps around for freshness checks.
+vars:
+  load_at_default: "1970-01-01"
+
+seeds:
+  hindsight_warehouse:
+    +schema: seed
+    brand_aliases:
+      +column_types:
+        alias: varchar
+        display: varchar
+        manufacturer: varchar
+    category_labels:
+      +column_types:
+        key: varchar
+        label: varchar
+
+models:
+  hindsight_warehouse:
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +schema: marts

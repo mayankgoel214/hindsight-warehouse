@@ -1,0 +1,27 @@
+{
+  "generatedAt": "2026-11-09T20:18:50.028Z",
+  "date": "2026-11-09",
+  "records": 5253,
+  "delta": -2,
+  "sources": {
+    "cpsc": {
+      "fresh": true,
+      "note": "fresh"
+    },
+    "healthcanada": {
+      "fresh": true,
+      "note": "fresh"
+    },
+    "eu-safetygate": {
+      "fresh": true,
+      "note": "fresh"
+    },
+    "saferproducts": {
+      "fresh": true,
+      "note": "fresh"
+    }
+  },
+  "pipeline": {
+    "quote_support_rate": 0.998
+  }
+}

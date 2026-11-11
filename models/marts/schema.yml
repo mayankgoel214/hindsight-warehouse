@@ -1,0 +1,142 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: Date dimension covering 2005-2027.
+    columns:
+      - name: date_day
+        description: One row per calendar day.
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_category
+    description: >
+      One row per category key, lifted from the seed. `is_v1_scope` marks the
+      eight Ninja categories the LLM extractor's taxonomy covers.
+    columns:
+      - name: category_key
+        tests:
+          - unique
+          - not_null
+      - name: category_label
+        tests:
+          - not_null
+      - name: is_v1_scope
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+
+  - name: dim_brand
+    description: One row per canonical (or fallback) brand display name.
+    columns:
+      - name: brand_sk
+        tests:
+          - unique
+          - not_null
+      - name: brand_display
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_failure_reports
+    description: >
+      One row per source record. Incremental on event_date. Primary category
+      is deterministic (v1-scope first, then alphabetical).
+    columns:
+      - name: record_id
+        tests:
+          - unique
+          - not_null
+      - name: source
+        tests:
+          - accepted_values:
+              values:
+                - cpsc_recall
+                - saferproducts_incident
+                - healthcanada_recall
+                - eu_safetygate
+      - name: kind
+        tests:
+          - accepted_values:
+              values: [recall, incident, alert]
+      - name: is_verified
+        tests:
+          - not_null
+      - name: primary_category_key
+        tests:
+          - relationships:
+              to: ref('dim_category')
+              field: category_key
+      - name: event_date
+        tests:
+          - not_null
+      - name: brand_display
+        description: >
+          Nullable because some sources (notably CPSC recalls) only store
+          brand info in a nested manufacturer list we don't flatten into a
+          primary brand.
+
+  - name: mart_failure_modes
+    description: Category x failure_mode aggregate with top brands and risk rank.
+    columns:
+      - name: category_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_category')
+              field: category_key
+      - name: failure_mode
+        tests:
+          - not_null
+      - name: total_reports
+        tests:
+          - not_null
+      - name: rank_in_category
+        tests:
+          - not_null
+
+  - name: mart_category_trend_yearly
+    description: Per-category yearly trend with YoY change and rolling 3-year total.
+    columns:
+      - name: category_key
+        tests:
+          - not_null
+      - name: event_year
+        tests:
+          - not_null
+
+  - name: mart_dfmea_rows
+    description: DFMEA-ready output -- one row per (record, failure_mode) with quote.
+    columns:
+      - name: record_id
+        tests:
+          - not_null
+      - name: failure_mode
+        tests:
+          - not_null
+      - name: url
+        description: Source URL for the engineer to verify.
+        tests:
+          - not_null
+
+  - name: mart_data_quality
+    description: Per-source data-quality scorecard, compared back to Hindsight's own version.json.
+    columns:
+      - name: source_key
+        tests:
+          - unique
+          - not_null
+          - accepted_values:
+              values:
+                - cpsc_recall
+                - saferproducts_incident
+                - healthcanada_recall
+                - eu_safetygate
+      - name: row_count
+        tests:
+          - not_null
+      - name: quote_support_rate
+        tests:
+          - not_null

@@ -1,0 +1,65 @@
+name: dbt build (DuckDB)
+
+# Runs the full pipeline against DuckDB on every push and PR. Snowflake
+# builds are run manually (they need secrets); this workflow is here to
+# prove the SQL compiles and the 92-test suite passes against the data
+# committed to the repo.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: dbt-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install dbt packages
+        env:
+          DBT_PROFILES_DIR: ${{ github.workspace }}
+        run: dbt deps
+
+      - name: Load raw data into DuckDB
+        run: python scripts/load_raw.py --target duckdb
+
+      - name: dbt build
+        env:
+          DBT_PROFILES_DIR: ${{ github.workspace }}
+        run: dbt build --target duckdb --fail-fast
+
+      - name: dbt docs generate
+        if: always()
+        env:
+          DBT_PROFILES_DIR: ${{ github.workspace }}
+        run: dbt docs generate --target duckdb
+
+      - name: Upload dbt target artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-target
+          path: |
+            target/manifest.json
+            target/catalog.json
+            target/run_results.json
+          if-no-files-found: ignore

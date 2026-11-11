@@ -1,0 +1,26 @@
+.venv/
+__pycache__/
+*.pyc
+
+# dbt
+target/
+dbt_packages/
+logs/
+.user.yml
+
+# Local databases
+*.duckdb
+*.duckdb.wal
+*.duckdb.tmp
+hindsight_warehouse.duckdb
+
+# Secrets — profiles.yml is committed, .env is not.
+.env
+.env.local
+.env.*.local
+
+# Editors and OS cruft
+.DS_Store
+.idea/
+.vscode/
+*.swp

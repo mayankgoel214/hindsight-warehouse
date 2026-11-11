@@ -1,0 +1,18 @@
+# Pinned for reproducibility. dbt 1.8 is the current LTS line.
+dbt-core==1.8.9
+dbt-duckdb==1.8.4
+dbt-snowflake==1.8.4
+duckdb==1.1.3
+
+# Click 8.2 removes argument features dbt-core 1.8 relies on.
+click<8.2
+
+# pyOpenSSL<25 breaks on recent cryptography builds; snowflake-connector-python
+# pulls the broken combination in by default, so pin the fixed version.
+pyOpenSSL>=25.0.0
+cryptography>=43.0.0
+
+snowflake-connector-python==3.12.4
+pandas==2.2.3
+pyarrow==18.1.0
+python-dotenv==1.0.1
