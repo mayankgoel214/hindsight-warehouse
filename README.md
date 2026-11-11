@@ -130,8 +130,6 @@ Ran `dbt build --full-refresh` against DuckDB on **2026-11-11**.
   LLM-extracted failure mode)
 - **99.88% quote support rate** -- every LLM-extracted failure mode is
   grounded in a verbatim quote found in the source text
-- **242 SharkNinja rows** across the four sources (3 CPSC + 3 Health Canada
-  + 361 SaferProducts, same report numbers as hindsight)
 
 ### Top 10 failure modes by risk score (verified weight x2, serious x3)
 
