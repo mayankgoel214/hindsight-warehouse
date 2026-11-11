@@ -4,19 +4,19 @@
 
 with overall as (
     select
-        SUM(CASE WHEN quote_status IN ('exact', 'near') THEN 1 ELSE 0 END)::DOUBLE as supported,
-        COUNT(*)::DOUBLE as total
+        SUM(CASE WHEN quote_status IN ('exact', 'near') THEN 1 ELSE 0 END)::DOUBLE as n_supported,
+        COUNT(*)::DOUBLE as n_total
     from {{ ref('stg_extractions') }}
-    where in_scope is true
-      and duplicate is false
+    where in_scope = true
+      and duplicate = false
       and quote is not null
       and quote <> ''
 )
 
 select
-    supported,
-    total,
-    supported / NULLIF(total, 0) as quote_support_rate
+    n_supported,
+    n_total,
+    n_supported / NULLIF(n_total, 0) as quote_support_rate
 from overall
-where total > 0
-  and supported / total < 0.99
+where n_total > 0
+  and n_supported / n_total < 0.99

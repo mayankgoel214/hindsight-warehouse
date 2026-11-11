@@ -41,7 +41,7 @@ extraction_per_record as (
         MAX(quote_status)       as quote_status,
         MAX(quote_score)        as quote_score
     from {{ ref('stg_extractions') }}
-    where in_scope is true and duplicate is false
+    where in_scope = true and duplicate = false
     group by record_id
 ),
 

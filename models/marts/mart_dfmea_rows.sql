@@ -8,7 +8,7 @@
 with with_ext as (
     select *
     from {{ ref('int_reports_with_extractions') }}
-    where is_v1_scope is true
+    where is_v1_scope = true
       and failure_mode is not null
       and TRIM(failure_mode) <> ''
 ),

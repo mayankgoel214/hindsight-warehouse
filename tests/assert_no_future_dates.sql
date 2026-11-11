@@ -7,4 +7,4 @@ select
     source,
     event_date
 from {{ ref('fct_failure_reports') }}
-where event_date > CURRENT_DATE + INTERVAL 7 DAY
+where event_date > {{ dbt.dateadd('day', 7, 'current_date') }}

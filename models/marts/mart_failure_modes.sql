@@ -8,7 +8,7 @@
 with with_ext as (
     select *
     from {{ ref('int_reports_with_extractions') }}
-    where is_v1_scope is true
+    where is_v1_scope = true
       and failure_mode is not null
       and TRIM(failure_mode) <> ''
 ),
@@ -71,7 +71,7 @@ top_brands as (
     select
         category_key,
         failure_mode,
-        STRING_AGG(brand_display, ', ') as top_brands
+        {{ dbt.listagg('brand_display', "', '") }} as top_brands
     from (
         select category_key, failure_mode, brand_display
         from brand_counts

@@ -10,7 +10,7 @@ with brands as (
         brand_display,
         MAX(canonical_brand) as canonical_brand,
         MAX(manufacturer)    as manufacturer,
-        BOOL_OR(is_canonical) as is_canonical,
+        {{ dbt.bool_or('is_canonical') }} as is_canonical,
         COUNT(*) as record_count
     from {{ ref('int_brand_canonicalized') }}
     where brand_display is not null

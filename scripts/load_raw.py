@@ -141,7 +141,7 @@ def load_snowflake(tables: dict[str, list[Row]]) -> None:
     import snowflake.connector
     from snowflake.connector.pandas_tools import write_pandas
 
-    required = ("SNOWFLAKE_ACCOUNT", "SNOWFLAKE_USER", "SNOWFLAKE_TOKEN")
+    required = ("SNOWFLAKE_ACCOUNT", "SNOWFLAKE_USER", "SNOWFLAKE_PRIVATE_KEY_PATH")
     missing = [k for k in required if not os.environ.get(k)]
     if missing:
         raise SystemExit(
@@ -158,8 +158,7 @@ def load_snowflake(tables: dict[str, list[Row]]) -> None:
     con = snowflake.connector.connect(
         account=os.environ["SNOWFLAKE_ACCOUNT"],
         user=os.environ["SNOWFLAKE_USER"],
-        password=os.environ["SNOWFLAKE_TOKEN"],
-        authenticator="snowflake",
+        private_key_file=os.path.expanduser(os.environ["SNOWFLAKE_PRIVATE_KEY_PATH"]),
         role=role,
         warehouse=warehouse,
     )

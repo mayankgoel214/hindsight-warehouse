@@ -50,7 +50,7 @@ extraction_quality as (
         SUM(CASE WHEN quote_status IN ('exact', 'near') THEN 1 ELSE 0 END) as extractions_with_supported_quote,
         SUM(CASE WHEN failure_mode is not null THEN 1 ELSE 0 END)           as extractions_with_failure_mode
     from {{ ref('stg_extractions') }}
-    where in_scope is true and duplicate is false
+    where in_scope = true and duplicate = false
     group by source
 ),
 

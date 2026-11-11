@@ -1,8 +1,8 @@
 # hindsight-warehouse
 
 A dbt project that turns 13,096 raw product-safety records from four
-government feeds into an analyst-ready warehouse. Built to practise the SQL /
-dbt / Snowflake / Python pieces of a Forward Deployed Engineer role.
+government feeds into an analyst-ready warehouse. The same SQL runs on
+DuckDB (local, CI) and Snowflake, with 92 data tests guarding every build.
 
 [**Companion app ->**](https://hindsight.mayank-goel.com) the search UI the
 same data powers.
@@ -173,11 +173,12 @@ DBT_PROFILES_DIR=. .venv/bin/dbt docs serve   # then http://localhost:8080
 1. Create a database, warehouse, and schemas by pasting
    `scripts/snowflake_setup.sql` into a Snowsight worksheet (or running it
    via the CLI). Takes under 30 seconds.
-2. In Snowsight, create a **Programmatic Access Token** under your user menu
-   -> *Account* -> *Programmatic access tokens*.
+2. Generate a key pair and register the public half with your user:
+   `openssl genrsa 2048 | openssl pkcs8 -topk8 -nocrypt -out ~/.snowflake/hindsight_key.p8`,
+   then `ALTER USER <you> SET RSA_PUBLIC_KEY='<public key body>';`.
 3. Copy `.env.example` to `.env` and fill in `SNOWFLAKE_ACCOUNT`,
-   `SNOWFLAKE_USER`, `SNOWFLAKE_TOKEN`. (Keep `.env` out of git; it is
-   gitignored.)
+   `SNOWFLAKE_USER`, `SNOWFLAKE_PRIVATE_KEY_PATH`. (`.env` is gitignored and
+   the private key lives outside the repo.)
 4. Load and build:
 
 ```bash
@@ -219,10 +220,9 @@ enums, there are five singular tests that encode the data contract:
   canonical brand via the seed; the rest fall back to their cleaned
   signature (lowercase, suffix-stripped). `is_canonical` flags which is
   which.
-- **Snowflake connection uses password auth with a programmatic access
-  token.** For anything shared with other engineers, prefer key-pair auth
-  (swap the `password` / `authenticator` lines in `profiles.yml` for
-  `private_key_path`).
+- **Snowflake connection uses key-pair auth.** No password or token is
+  stored anywhere; the private key never leaves the machine that runs dbt.
+  Last full build on Snowflake: 2026-11-11, 112 of 112 nodes passing.
 - **Raw data is pinned.** The loader reads the JSON files committed to
   `data/raw/`; it doesn't refresh from the regulators. Refresh is a job for
   the upstream hindsight pipeline, not this warehouse.

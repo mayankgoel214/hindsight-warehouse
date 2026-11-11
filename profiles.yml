@@ -19,14 +19,16 @@ hindsight_warehouse:
       type: snowflake
       account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
       user: "{{ env_var('SNOWFLAKE_USER') }}"
-      # Programmatic Access Tokens (PATs) authenticate as a password with
-      # authenticator=snowflake. If you later move to key-pair auth, swap
-      # password+authenticator for `private_key_path` and `private_key_passphrase`.
-      password: "{{ env_var('SNOWFLAKE_TOKEN') }}"
-      authenticator: snowflake
+      # Key-pair auth: the private key stays on this machine, outside the repo.
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
       role: "{{ env_var('SNOWFLAKE_ROLE', 'ACCOUNTADMIN') }}"
       warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'COMPUTE_WH') }}"
       database: "{{ env_var('SNOWFLAKE_DATABASE', 'HINDSIGHT') }}"
       schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'ANALYTICS') }}"
       threads: 4
       client_session_keep_alive: false
+      reuse_connections: true
+      connect_retries: 5
+      connect_timeout: 30
+      retry_on_database_errors: true
+      retry_all: true

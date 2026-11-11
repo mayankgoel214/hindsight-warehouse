@@ -14,8 +14,8 @@ with reports as (
 
 extractions as (
     select * from {{ ref('stg_extractions') }}
-    where in_scope is true
-      and duplicate is false
+    where in_scope = true
+      and duplicate = false
 ),
 
 v1 as (
