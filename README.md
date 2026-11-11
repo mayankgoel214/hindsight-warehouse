@@ -120,8 +120,8 @@ flowchart LR
 Ran `dbt build --full-refresh` against DuckDB on **2026-11-11**.
 
 - **18 models** -- 6 staging, 4 intermediate, 8 marts
-- **92 data tests** -- all pass (plus 20 schema-generated accepted-values /
-  relationships / uniqueness tests, 112 tests total)
+- **92 data tests** -- all pass (a full build is 112 steps: 18 models,
+  2 seeds and the 92 tests)
 - **13,096 records** land in `fct_failure_reports` -- 445 CPSC recalls, 355
   Health Canada recalls, 548 EU Safety Gate alerts, 11,748 SaferProducts.gov
   incident reports
